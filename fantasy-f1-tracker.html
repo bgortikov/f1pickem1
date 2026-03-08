@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasy F1 League 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #111111;
+    --bg-card: #161616;
+    --bg-card-hover: #1c1c1c;
+    --border: #222222;
+    --border-accent: #333333;
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-muted: #555555;
+    --accent-red: #e8002d;
+    --accent-orange: #ff8000;
+    --accent-cyan: #27f4d2;
+    --accent-blue: #3671c6;
+    --bryan: #E8002D;
+    --chris: #FF8000;
+    --preston: #27F4D2;
+    --matthew: #3671C6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--bryan), var(--chris), var(--preston), var(--matthew));
+  }
+
+  .header-top {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .header h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .header .season-badge {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+
+  .header .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+  }
+
+  /* STANDINGS */
+  .standings-section {
+    padding: 40px 0;
+  }
+
+  .section-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .standings-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .standings-grid { grid-template-columns: repeat(2, 1fr); }
+    .header h1 { font-size: 32px; }
+    .race-nav-track { gap: 4px; }
+  }
+
+  @media (max-width: 480px) {
+    .standings-grid { grid-template-columns: 1fr; }
+  }
+
+  .standing-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .standing-card:hover {
+    border-color: var(--border-accent);
+  }
+
+  .standing-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .standing-card[data-player="bryan"]::before { background: var(--bryan); }
+  .standing-card[data-player="chris"]::before { background: var(--chris); }
+  .standing-card[data-player="preston"]::before { background: var(--preston); }
+  .standing-card[data-player="matthew"]::before { background: var(--matthew); }
+
+  .standing-position {
+    font-family: 'Oswald', sans-serif;
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-muted);
+    opacity: 0.3;
+    position: absolute;
+    right: 12px;
+    top: 8px;
+  }
+
+  .standing-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .standing-points {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px;
+    font-weight: 600;
+    margin: 8px 0 4px;
+  }
+
+  .standing-points span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-left: 4px;
+  }
+
+  .standing-gap {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* RACE NAVIGATOR */
+  .race-nav-section {
+    padding: 0 0 32px;
+  }
+
+  .race-nav-track {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-accent) transparent;
+  }
+
+  .race-pip {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .race-pip:hover {
+    border-color: var(--border-accent);
+    background: var(--bg-card-hover);
+  }
+
+  .race-pip.active {
+    border-color: var(--text-secondary);
+    background: var(--bg-card-hover);
+  }
+
+  .race-pip.completed {
+    border-color: var(--border-accent);
+  }
+
+  .race-pip.completed::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+  }
+
+  .race-pip .flag {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .race-pip .round-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--text-muted);
+    line-height: 1;
+    margin-top: 1px;
+  }
+
+  /* RACE DETAIL */
+  .race-detail {
+    padding: 0 0 40px;
+  }
+
+  .race-detail-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .race-detail-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .race-detail-date {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .race-detail-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .race-detail-status.completed {
+    color: var(--accent-cyan);
+    border-color: rgba(39, 244, 210, 0.2);
+    background: rgba(39, 244, 210, 0.05);
+  }
+
+  /* PICKS + RESULTS GRID */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+
+  .detail-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .detail-panel-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .pick-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pick-row:last-child { border-bottom: none; }
+
+  .pick-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pick-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .pick-player-name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .pick-drivers {
+    display: flex;
+    gap: 6px;
+  }
+
+  .driver-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  .pick-points {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* RACE RESULTS TABLE */
+  .results-table {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .results-table th {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 0 0 10px;
+  }
+
+  .results-table th:last-child {
+    text-align: right;
+  }
+
+  .results-table td {
+    padding: 6px 0;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  .results-table td:last-child {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .results-table .pos {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    width: 30px;
+  }
+
+  /* DRIVER USAGE SECTION */
+  .usage-section {
+    padding: 0 0 40px;
+  }
+
+  .usage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .usage-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .usage-player-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .usage-player-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .usage-driver-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 12px;
+  }
+
+  .usage-driver-code {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+  }
+
+  .usage-pips {
+    display: flex;
+    gap: 3px;
+  }
+
+  .usage-pip {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  .usage-pip.filled {
+    background: var(--text-secondary);
+  }
+
+  /* SPARKLINE */
+  .sparkline-section {
+    padding: 0 0 40px;
+  }
+
+  .sparkline-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+
+  .sparkline-canvas {
+    width: 100%;
+    height: 200px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .empty-state .countdown {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  /* FOOTER */
+  .footer {
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 20px;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in {
+    animation: fadeUp 0.4s ease-out both;
+  }
+
+  .animate-in:nth-child(1) { animation-delay: 0s; }
+  .animate-in:nth-child(2) { animation-delay: 0.05s; }
+  .animate-in:nth-child(3) { animation-delay: 0.1s; }
+  .animate-in:nth-child(4) { animation-delay: 0.15s; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <div class="header-top">
+      <h1>Fantasy F1</h1>
+      <span class="season-badge">2026 Season</span>
+    </div>
+    <p class="subtitle">Gortikov · Berberian · Hayes · Phelps</p>
+  </header>
+
+  <section class="standings-section">
+    <div class="section-label">Championship Standings</div>
+    <div class="standings-grid" id="standings-grid"></div>
+  </section>
+
+  <section class="race-nav-section">
+    <div class="section-label">Race Calendar</div>
+    <div class="race-nav-track" id="race-nav"></div>
+  </section>
+
+  <section class="race-detail" id="race-detail"></section>
+
+  <section class="sparkline-section" id="sparkline-section" style="display:none;">
+    <div class="section-label">Points Progression</div>
+    <div class="sparkline-container">
+      <canvas class="sparkline-canvas" id="sparkline-canvas"></canvas>
+    </div>
+  </section>
+
+  <section class="usage-section">
+    <div class="section-label">Driver Usage Tracker</div>
+    <div class="usage-grid" id="usage-grid"></div>
+  </section>
+
+  <footer class="footer">
+    Fantasy F1 League 2026 — Updated after each race by Bryan
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// SEASON DATA — UPDATE THIS AFTER EACH RACE
+// ============================================================
+const SEASON_DATA = {
+  players: {
+    bryan:   { name: "Bryan",   color: "#E8002D", fullName: "Bryan Gortikov" },
+    chris:   { name: "Chris",   color: "#FF8000", fullName: "Chris Berberian" },
+    preston: { name: "Preston", color: "#27F4D2", fullName: "Preston Hayes" },
+    matthew: { name: "Matthew", color: "#3671C6", fullName: "Matthew Phelps" },
+  },
+
+  drivers: [
+    "NOR","PIA","HAM","LEC","RUS","ANT","VER","HAD",
+    "ALO","STR","ALB","SAI","GAS","COL","OCO","BEA",
+    "HUL","BOR","LAW","LIN","PER","BOT"
+  ],
+
+  races: [
+    { round: 1,  name: "Australia",    flag: "🇦🇺", date: "Mar 8", completed: true,
+      results: { RUS: 25, ANT: 18, LEC: 15, HAM: 12, NOR: 10, VER: 8, BEA: 6, LIN: 4, BOR: 2, GAS: 1 },
+      picks: {
+        bryan:   { drivers: ["LEC", "ANT"], points: 33 },
+        chris:   { drivers: ["VER", "LEC"], points: 23 },
+        preston: { drivers: ["RUS", "HAM"], points: 37 },
+        matthew: { drivers: ["LEC", "HUL"], points: 15 },
+      }
+    },
+    { round: 2,  name: "China",        flag: "🇨🇳", date: "Mar 28", completed: false, results: {}, picks: {} },
+    { round: 3,  name: "Japan",        flag: "🇯🇵", date: "Apr 4",  completed: false, results: {}, picks: {} },
+    { round: 4,  name: "Bahrain",      flag: "🇧🇭", date: "Apr 18", completed: false, results: {}, picks: {} },
+    { round: 5,  name: "Saudi Arabia", flag: "🇸🇦", date: "May 2",  completed: false, results: {}, picks: {} },
+    { round: 6,  name: "Miami",        flag: "🇺🇸", date: "May 16", completed: false, results: {}, picks: {} },
+    { round: 7,  name: "Emilia Romagna", flag: "🇮🇹", date: "May 30", completed: false, results: {}, picks: {} },
+    { round: 8,  name: "Monaco",       flag: "🇲🇨", date: "Jun 13", completed: false, results: {}, picks: {} },
+    { round: 9,  name: "Spain",        flag: "🇪🇸", date: "Jun 27", completed: false, results: {}, picks: {} },
+    { round: 10, name: "Canada",       flag: "🇨🇦", date: "Jul 11", completed: false, results: {}, picks: {} },
+    { round: 11, name: "Austria",      flag: "🇦🇹", date: "Jul 25", completed: false, results: {}, picks: {} },
+    { round: 12, name: "Britain",      flag: "🇬🇧", date: "Aug 1",  completed: false, results: {}, picks: {} },
+    { round: 13, name: "Belgium",      flag: "🇧🇪", date: "Aug 29", completed: false, results: {}, picks: {} },
+    { round: 14, name: "Netherlands",  flag: "🇳🇱", date: "Sep 5",  completed: false, results: {}, picks: {} },
+    { round: 15, name: "Hungary",      flag: "🇭🇺", date: "Sep 13", completed: false, results: {}, picks: {} },
+    { round: 16, name: "Italy",        flag: "🇮🇹", date: "Sep 27", completed: false, results: {}, picks: {} },
+    { round: 17, name: "Azerbaijan",   flag: "🇦🇿", date: "Oct 11", completed: false, results: {}, picks: {} },
+    { round: 18, name: "Singapore",    flag: "🇸🇬", date: "Oct 25", completed: false, results: {}, picks: {} },
+    { round: 19, name: "United States",flag: "🇺🇸", date: "Nov 8",  completed: false, results: {}, picks: {} },
+    { round: 20, name: "Mexico",       flag: "🇲🇽", date: "Nov 22", completed: false, results: {}, picks: {} },
+    { round: 21, name: "Brazil",       flag: "🇧🇷", date: "Nov 29", completed: false, results: {}, picks: {} },
+    { round: 22, name: "Las Vegas",    flag: "🇺🇸", date: "Dec 7",  completed: false, results: {}, picks: {} },
+    { round: 23, name: "Qatar",        flag: "🇶🇦", date: "Dec 13", completed: false, results: {}, picks: {} },
+    { round: 24, name: "Abu Dhabi",    flag: "🇦🇪", date: "Dec 20", completed: false, results: {}, picks: {} },
+  ]
+};
+
+// ============================================================
+
+// STATE
+let selectedRound = 1;
+
+// COMPUTED
+function getStandings() {
+  const totals = {};
+  for (const pid of Object.keys(SEASON_DATA.players)) {
+    totals[pid] = 0;
+  }
+  for (const race of SEASON_DATA.races) {
+    if (!race.completed) continue;
+    for (const pid of Object.keys(totals)) {
+      totals[pid] += (race.picks[pid]?.points || 0);
+    }
+  }
+  return Object.entries(totals)
+    .map(([pid, pts]) => ({ pid, pts, ...SEASON_DATA.players[pid] }))
+    .sort((a, b) => b.pts - a.pts);
+}
+
+function getDriverUsage(pid) {
+  const usage = {};
+  SEASON_DATA.drivers.forEach(d => usage[d] = 0);
+  for (const race of SEASON_DATA.races) {
+    if (!race.completed || !race.picks[pid]) continue;
+    for (const d of race.picks[pid].drivers) {
+      usage[d] = (usage[d] || 0) + 1;
+    }
+  }
+  return usage;
+}
+
+function getCumulativePoints() {
+  const series = {};
+  for (const pid of Object.keys(SEASON_DATA.players)) {
+    series[pid] = [];
+    let cum = 0;
+    for (const race of SEASON_DATA.races) {
+      if (!race.completed) break;
+      cum += (race.picks[pid]?.points || 0);
+      series[pid].push(cum);
+    }
+  }
+  return series;
+}
+
+// RENDER — STANDINGS
+function renderStandings() {
+  const standings = getStandings();
+  const leader = standings[0]?.pts || 0;
+  const grid = document.getElementById('standings-grid');
+  grid.innerHTML = standings.map((s, i) => `
+    <div class="standing-card animate-in" data-player="${s.pid}">
+      <div class="standing-position">${i + 1}</div>
+      <div class="standing-name" style="color:${s.color}">${s.name}</div>
+      <div class="standing-points">${s.pts}<span>pts</span></div>
+      <div class="standing-gap">${i === 0 ? 'Leader' : `${s.pts - leader} to leader`}</div>
+    </div>
+  `).join('');
+}
+
+// RENDER — RACE NAV
+function renderRaceNav() {
+  const nav = document.getElementById('race-nav');
+  nav.innerHTML = SEASON_DATA.races.map(r => `
+    <div class="race-pip ${r.completed ? 'completed' : ''} ${r.round === selectedRound ? 'active' : ''}"
+         onclick="selectRound(${r.round})" title="R${r.round} ${r.name}">
+      <span class="flag">${r.flag}</span>
+      <span class="round-num">${r.round}</span>
+    </div>
+  `).join('');
+}
+
+function selectRound(round) {
+  selectedRound = round;
+  renderRaceNav();
+  renderRaceDetail();
+}
+
+// RENDER — RACE DETAIL
+function renderRaceDetail() {
+  const race = SEASON_DATA.races.find(r => r.round === selectedRound);
+  const container = document.getElementById('race-detail');
+
+  if (!race) { container.innerHTML = ''; return; }
+
+  const statusClass = race.completed ? 'completed' : '';
+  const statusText = race.completed ? 'Completed' : 'Upcoming';
+
+  let picksHTML = '';
+  if (race.completed && race.picks) {
+    const sorted = Object.entries(race.picks)
+      .map(([pid, data]) => ({ pid, ...data, ...SEASON_DATA.players[pid] }))
+      .sort((a, b) => b.points - a.points);
+
+    picksHTML = sorted.map(p => `
+      <div class="pick-row">
+        <div class="pick-player">
+          <div class="pick-dot" style="background:${p.color}"></div>
+          <span class="pick-player-name">${p.name}</span>
+        </div>
+        <div class="pick-drivers">
+          ${p.drivers.map(d => `<span class="driver-chip">${d}</span>`).join('')}
+        </div>
+        <div class="pick-points">${p.points}</div>
+      </div>
+    `).join('');
+  } else {
+    picksHTML = `<div class="empty-state">Picks will appear after the race</div>`;
+  }
+
+  let resultsHTML = '';
+  if (race.completed && race.results) {
+    const sorted = Object.entries(race.results)
+      .filter(([_, pts]) => pts > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    if (sorted.length > 0) {
+      resultsHTML = `
+        <table class="results-table">
+          <tr><th class="pos">P</th><th>Driver</th><th>Pts</th></tr>
+          ${sorted.map(([code, pts], i) => `
+            <tr><td class="pos">${i + 1}</td><td>${code}</td><td>${pts}</td></tr>
+          `).join('')}
+        </table>
+      `;
+    }
+  } else {
+    resultsHTML = `<div class="empty-state">Results pending</div>`;
+  }
+
+  container.innerHTML = `
+    <div class="race-detail-header">
+      <span class="race-detail-title">${race.flag} ${race.name}</span>
+      <span class="race-detail-date">${race.date}</span>
+      <span class="race-detail-status ${statusClass}">${statusText}</span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-panel">
+        <div class="detail-panel-title">Player Picks</div>
+        ${picksHTML}
+      </div>
+      <div class="detail-panel">
+        <div class="detail-panel-title">Race Results</div>
+        ${resultsHTML}
+      </div>
+    </div>
+  `;
+}
+
+// RENDER — DRIVER USAGE
+function renderUsage() {
+  const grid = document.getElementById('usage-grid');
+  grid.innerHTML = Object.entries(SEASON_DATA.players).map(([pid, player]) => {
+    const usage = getDriverUsage(pid);
+    const rows = SEASON_DATA.drivers.map(d => {
+      const count = usage[d] || 0;
+      const pips = [0,1,2].map(i =>
+        `<div class="usage-pip ${i < count ? 'filled' : ''}"></div>`
+      ).join('');
+      return `<div class="usage-driver-row"><span class="usage-driver-code">${d}</span><div class="usage-pips">${pips}</div></div>`;
+    }).join('');
+
+    return `
+      <div class="usage-player-card">
+        <div class="usage-player-name" style="color:${player.color}">${player.name}</div>
+        ${rows}
+      </div>
+    `;
+  }).join('');
+}
+
+// RENDER — SPARKLINE
+function renderSparkline() {
+  const series = getCumulativePoints();
+  const completedCount = SEASON_DATA.races.filter(r => r.completed).length;
+
+  if (completedCount < 2) {
+    document.getElementById('sparkline-section').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('sparkline-section').style.display = '';
+  const canvas = document.getElementById('sparkline-canvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+
+  const w = rect.width;
+  const h = rect.height;
+  const pad = { top: 16, right: 60, bottom: 24, left: 8 };
+  const plotW = w - pad.left - pad.right;
+  const plotH = h - pad.top - pad.bottom;
+
+  const maxPts = Math.max(...Object.values(series).flatMap(s => s), 1);
+
+  ctx.clearRect(0, 0, w, h);
+
+  for (const [pid, pts] of Object.entries(series)) {
+    if (pts.length === 0) continue;
+    const player = SEASON_DATA.players[pid];
+    ctx.beginPath();
+    ctx.strokeStyle = player.color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+
+    for (let i = 0; i < pts.length; i++) {
+      const x = pad.left + (i / (completedCount - 1)) * plotW;
+      const y = pad.top + plotH - (pts[i] / maxPts) * plotH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Label at end
+    const lastX = pad.left + ((pts.length - 1) / (completedCount - 1)) * plotW;
+    const lastY = pad.top + plotH - (pts[pts.length - 1] / maxPts) * plotH;
+    ctx.fillStyle = player.color;
+    ctx.font = '500 11px "JetBrains Mono", monospace';
+    ctx.fillText(`${player.name} ${pts[pts.length - 1]}`, lastX + 8, lastY + 4);
+  }
+
+  // X-axis labels
+  ctx.fillStyle = '#555';
+  ctx.font = '10px "JetBrains Mono", monospace';
+  for (let i = 0; i < completedCount; i++) {
+    const x = pad.left + (i / (completedCount - 1)) * plotW;
+    ctx.fillText(`R${i + 1}`, x - 6, h - 4);
+  }
+}
+
+// COUNTDOWN
+function renderCountdown() {
+  const nextRace = SEASON_DATA.races.find(r => !r.completed);
+  if (!nextRace) return;
+
+  const firstCompleted = SEASON_DATA.races.some(r => r.completed);
+  if (firstCompleted) return;
+
+  // Show countdown to season start in the race detail area
+  const raceDate = new Date('2026-03-14T00:00:00');
+  const now = new Date();
+  const diff = raceDate - now;
+  const days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+
+  const detail = document.getElementById('race-detail');
+  const existing = detail.querySelector('.empty-state');
+  if (!existing) {
+    // Only add if race detail is showing upcoming with no data
+  }
+}
+
+// INIT
+function init() {
+  renderStandings();
+  renderRaceNav();
+  renderRaceDetail();
+  renderUsage();
+  renderSparkline();
+}
+
+window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('resize', () => {
+  const completedCount = SEASON_DATA.races.filter(r => r.completed).length;
+  if (completedCount >= 2) renderSparkline();
+});
+</script>
+
+</body>
+</html>
